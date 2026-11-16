@@ -48,7 +48,65 @@ A comprehensive, production-ready Indian College & Higher-Education Management S
 
 ---
 
-## ⚙️ Installation & Setup
+## 🐳 Docker Setup & Quickstart (Recommended)
+
+Get the complete environment (PHP 8.4-FPM, Nginx, MySQL 8.4, Redis, and Queue Worker) running in isolated containers with Docker Compose.
+
+### 1. Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) & [Docker Compose v2+](https://docs.docker.com/compose/)
+
+### 2. Configure Environment
+```bash
+cp .env.docker.example .env
+```
+*(Optionally adjust `APP_PORT`, `FORWARD_DB_PORT`, or passwords in `.env` if desired.)*
+
+### 3. Build & Start Containers
+```bash
+docker compose up -d --build
+```
+This boots 5 containerized services:
+- **`nginx`** (`college_erp_nginx`): Web server on `http://localhost:8000`
+- **`app`** (`college_erp_app`): PHP 8.4-FPM with all Laravel extensions
+- **`db`** (`college_erp_db`): MySQL 8.4 server (port `3306`)
+- **`redis`** (`college_erp_redis`): Redis 7 cache/session/queue store (port `6379`)
+- **`queue`** (`college_erp_queue`): Background queue worker
+
+### 4. Initialize the Application
+Run the setup commands inside the running `app` container:
+```bash
+# Install PHP dependencies
+docker compose exec app composer install
+
+# Generate application key
+docker compose exec app php artisan key:generate
+
+# Run database migrations and seed all 30 college ERP modules
+docker compose exec app php artisan migrate:fresh --seed
+
+# Build frontend assets (or install Node dependencies)
+docker compose exec app npm install
+docker compose exec app npm run build
+```
+
+The application is now accessible at **`http://localhost:8000`**.
+
+### 🛠️ Handy Docker Commands
+| Action | Command |
+|---|---|
+| **View logs** | `docker compose logs -f` |
+| **View app logs** | `docker compose logs -f app` |
+| **Run Artisan commands** | `docker compose exec app php artisan <command>` |
+| **Run tests** | `docker compose exec app php artisan test` |
+| **Open Bash shell in container** | `docker compose exec app sh` |
+| **Access MySQL CLI** | `docker compose exec db mysql -ucollege_user -pcollege_secret college` |
+| **Restart services** | `docker compose restart` |
+| **Stop all services** | `docker compose down` |
+| **Stop and clean database volumes** | `docker compose down -v` |
+
+---
+
+## ⚙️ Local (Non-Docker) Installation & Setup
 
 1. **Clone the repository**:
    ```bash
